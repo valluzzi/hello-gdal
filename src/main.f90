@@ -5,8 +5,10 @@ program HelloWorld
     TYPE(gdaldriverh) :: driver
     TYPE(gdaldataseth) :: ds1, ds2
     character(len=16), dimension(:), allocatable ::CO
+    real :: data(4,4) = reshape((/1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16/), (/4,4/))
+    integer :: err    
 
-    
+
     CO = (/ "COMPRESS=LZW" /)
 
     call GDALAllRegister()
@@ -17,9 +19,7 @@ program HelloWorld
 
     call close(ds1)
 
-    ds2 = GTiff2COG('test.tif', 'test2.tif')
-    call close(ds2)
-
+    !Numpy2GDAL_float32(data, gt, prj, 'test.tif', CO)
 
     deallocate(CO)
     call GDALDestroyDriverManager()
