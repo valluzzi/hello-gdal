@@ -262,5 +262,24 @@ module gdal_c_bind
         END FUNCTION gdalsetgeotransform
     END INTERFACE
 
+    INTERFACE
+        FUNCTION gdalgetrasterminimum(hband, pbsuccess) BIND(C,name='GDALGetRasterMinimum')
+            IMPORT
+            !!DEC$ ATTRIBUTES STDCALL :: GDALGetRasterMinimum
+            TYPE(gdalrasterbandh),VALUE :: hband
+            INTEGER(kind=c_int),INTENT(inout) :: pbsuccess
+            REAL(kind=c_double) :: gdalgetrasterminimum
+        END FUNCTION gdalgetrasterminimum
+    END INTERFACE
+
+    INTERFACE
+        FUNCTION gdalgetrastermaximum(hband, pbsuccess) BIND(C,name='GDALGetRasterMaximum')
+            IMPORT
+            !!DEC$ ATTRIBUTES STDCALL :: GDALGetRasterMaximum
+            TYPE(gdalrasterbandh),VALUE :: hband
+            INTEGER(kind=c_int),INTENT(inout) :: pbsuccess
+            REAL(kind=c_double) :: gdalgetrastermaximum
+        END FUNCTION gdalgetrastermaximum
+    END INTERFACE
 
 end module
