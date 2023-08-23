@@ -71,6 +71,11 @@ module gdal_c_bind
         type(c_ptr) :: ptr = C_NULL_PTR
     end type GDALRasterBandH 
 
+    type, bind(C) :: GDALMetaDataH
+        private
+        type(c_ptr) :: ptr = C_NULL_PTR
+    end type GDALMetaDataH 
+
     interface
         function GDALGetDriverByName(pszname) bind(C, name='GDALGetDriverByName')
             import
@@ -297,7 +302,7 @@ module gdal_c_bind
         FUNCTION GDALGetMetadata(hobject, pszdomain) BIND(C,name='GDALGetMetadata')
             IMPORT
             !!DEC$ ATTRIBUTES STDCALL :: GDALGetMetadata
-            TYPE(gdalmajorobjecth),VALUE :: hobject
+            TYPE(gdaldataseth),VALUE :: hobject
             CHARACTER(kind=c_char),INTENT(in) :: pszdomain(*)
             TYPE(c_ptr) :: gdalgetmetadata ! TYPE(c_ptr_ptr)
         END FUNCTION 
@@ -318,7 +323,7 @@ module gdal_c_bind
         FUNCTION GDALGetMetadataItem(hobject, pszname, pszdomain) BIND(C,name='GDALGetMetadataItem')
             IMPORT
             !!DEC$ ATTRIBUTES STDCALL :: GDALGetMetadataItem
-            TYPE(gdalmajorobjecth),VALUE :: hobject
+            TYPE(gdaldataseth),VALUE :: hobject
             CHARACTER(kind=c_char),INTENT(in) :: pszname(*)
             CHARACTER(kind=c_char),INTENT(in) :: pszdomain(*)
             TYPE(c_ptr) :: GDALGetMetadataItem ! char*
@@ -329,7 +334,7 @@ module gdal_c_bind
         FUNCTION GDALSetMetadataItem(hobject, pszname, pszvalue, pszdomain) BIND(C,name='GDALSetMetadataItem')
             IMPORT
             !!DEC$ ATTRIBUTES STDCALL :: GDALSetMetadataItem
-            TYPE(gdalmajorobjecth),VALUE :: hobject
+            TYPE(gdaldataseth),VALUE :: hobject
             CHARACTER(kind=c_char),INTENT(in) :: pszname(*)
             CHARACTER(kind=c_char),INTENT(in) :: pszvalue(*)
             CHARACTER(kind=c_char),INTENT(in) :: pszdomain(*)

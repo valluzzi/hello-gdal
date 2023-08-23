@@ -547,14 +547,45 @@ module gdal
         err = gdalrasterio( band , GF_Read, 0, 0, n, m, c_loc(data), n, m, dtype, 0,0)            
     end function
 
+    !--------------------------------------------------------------
+    ! Function:   GetMetadata
+    ! Purpose:    Get the metadata of a GDAL dataset
+    ! Inputs:     ds - GDAL dataset handle
+    ! Returns:    metadata - metadata
+    !--------------------------------------------------------------
+    function GetMetadata(ds) result(metadata)
+        implicit none
+        type(gdaldataseth), intent(in) :: ds
+        type(c_ptr) :: metadata
+        metadata = GDALGetMetadata(ds, C_NULL_CHAR)
+    end function
 
-    ! function GetMetadata(ds) result(meta)
-    !     implicit none
-    !     type(gdaldataseth), intent(in) :: ds
-    !     type(gdalmetadatah) :: meta
-    !     meta = GDALGetMetadata(ds, C_NULL_PTR)
-    ! end function
+    !--------------------------------------------------------------
+    ! Function:   GetMetadataItem
+    ! Purpose:    Get a metadata item of a GDAL dataset
+    ! Inputs:     ds - GDAL dataset handle
+    !             name - name of the metadata item
+    ! Returns:    value - value of the metadata item
+    !--------------------------------------------------------------
+    function GetMetadataItem(ds, name) result(value)
+        implicit none
+        type(gdaldataseth), intent(in) :: ds
+        character(*), intent(in) :: name    
+        character(:), allocatable :: value
+        character(kind=c_char), dimension(:), allocatable :: c_value
+        c_value = GDALGetMetadataItem(ds, name//char(0), C_NULL_CHAR)   
+        value = strtofchar(c_value)
+    end function    
 
+    function SetMetadataItem(ds, name, value) result(err)
+        implicit none
+        type(gdaldataseth), intent(in) :: ds
+        character(*), intent(in) :: name
+        character(*), intent(in) :: value
+        integer(kind=c_int) :: err ! CPLErr
+        err = GDALSetMetadataItem(ds, name//char(0), value//char(0), C_NULL_CHAR)
+
+    end function
 
 
   

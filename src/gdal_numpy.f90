@@ -31,10 +31,11 @@ module gdal_numpy
         integer(kind = c_int), optional, intent(in) :: band
         real(kind = KIND),  optional, intent(in) :: load_nodata_as
         real(kind = KIND),  allocatable, intent(inout) :: data(:,:)
-        
+
         real(kind = KIND) :: nodata
         type(gdaldataseth) :: ds
         integer(kind=c_int) :: err
+        character(:), allocatable :: item
 
         print *, "GDAL2Numpy_Float32"
         ds = Open(filename, GA_ReadOnly)
@@ -53,6 +54,10 @@ module gdal_numpy
             if (present(prj)) then
                 prj = GetProjection(ds)
             end if
+            
+            !get metadata
+            item = GetMetadataItem(ds, "test")
+            print *,"Metadata: <", item, ">"
             
             if (err==0.and.present(load_nodata_as).and.load_nodata_as/=nodata) then
                 where(data.eq.nodata) data = load_nodata_as
