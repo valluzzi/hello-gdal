@@ -11,8 +11,8 @@ module gdal_c_bind
     integer(kind=c_int),parameter :: GDT_Int16 = 3 !< signed 16 bit integer, in Fortran it can be declared as \a integer(kind=C_INT_16_T)
     integer(kind=c_int),parameter :: GDT_UInt32 = 4 !< unsigned 32 bit integer, it should be avoided in Fortran and translated into a signed type
     integer(kind=c_int),parameter :: GDT_Int32 = 5  !< signed 32 bit integer, in Fortran it can be declared as \a integer(kind=C_INT)
-    integer(kind=c_int),parameter :: GDT_Float32 = 6 !< 32 bit floating point real, in Fortran it can be declared as \a REAL(kind=C_FLOAT)
-    integer(kind=c_int),parameter :: GDT_Float64 = 7 !< 64 bit floating point real, in Fortran it can be declared as \a REAL(kind=C_DOUBLE)
+    integer(kind=c_int),parameter :: GDT_Float32 = 6 !< 32 bit floating point real, in Fortran it can be declared as \a real(kind=C_FLOAT)
+    integer(kind=c_int),parameter :: GDT_Float64 = 7 !< 64 bit floating point real, in Fortran it can be declared as \a real(kind=C_DOUBLE)
     integer(kind=c_int),parameter :: GDT_CInt16 = 8 !< 16 bit integer complex, it should be avoided in Fortran and translated into a floating point type
     integer(kind=c_int),parameter :: GDT_CInt32 = 9 !< 32 bit integer complex, it should be avoided in Fortran and translated into a floating point type
     integer(kind=c_int),parameter :: GDT_CFloat32 = 10 !< 32 bit (*2) floating point complex, in Fortran it can be declared as \a COMPLEX(kind=C_FLOAT_COMPLEX)
@@ -24,8 +24,8 @@ module gdal_c_bind
     integer(kind=c_int),parameter :: GA_Update = 1 !< update access type for opening a file: read and write
 
     ! GDALRWFlag
-    INTEGER(kind=c_int),PARAMETER :: GF_Read = 0 !< operation to be performed on a dataset: read
-    INTEGER(kind=c_int),PARAMETER :: GF_Write = 1 !< write
+    integer(kind=c_int),parameter :: GF_Read = 0 !< operation to be performed on a dataset: read
+    integer(kind=c_int),parameter :: GF_Write = 1 !< write
 
     interface
         subroutine GDALAllRegister() bind(C, name='GDALAllRegister')
@@ -157,27 +157,27 @@ module gdal_c_bind
         end function 
     end interface
 
-    INTERFACE
-        FUNCTION gdalrasterio(hrband, erwflag, ndsxoff, ndsyoff, ndsxsize, ndsysize, pbuffer, nbxsize, nbysize, ebdatatype, &
+    interface
+        function gdalrasterio(hrband, erwflag, ndsxoff, ndsyoff, ndsxsize, ndsysize, pbuffer, nbxsize, nbysize, ebdatatype, &
         npixelspace, nlinespace) BIND(C,name='GDALRasterIO')
             !!DEC$ ATTRIBUTES STDCALL :: GDALRasterIO
             IMPORT
 
-            TYPE(gdalrasterbandh),VALUE :: hrband
-            INTEGER(kind=c_int),VALUE :: erwflag ! GDALRWFlag
-            INTEGER(kind=c_int),VALUE :: ndsxoff
-            INTEGER(kind=c_int),VALUE :: ndsyoff
-            INTEGER(kind=c_int),VALUE :: ndsxsize
-            INTEGER(kind=c_int),VALUE :: ndsysize
-            TYPE(c_ptr),VALUE :: pbuffer ! void*
-            INTEGER(kind=c_int),VALUE :: nbxsize
-            INTEGER(kind=c_int),VALUE :: nbysize
-            INTEGER(kind=c_int),VALUE :: ebdatatype ! GDALDataType
-            INTEGER(kind=c_int),VALUE :: npixelspace
-            INTEGER(kind=c_int),VALUE :: nlinespace
-            INTEGER(kind=c_int) :: gdalrasterio ! CPLErr
-        END FUNCTION gdalrasterio
-    END INTERFACE
+            type(gdalrasterbandh),VALUE :: hrband
+            integer(kind=c_int),VALUE :: erwflag ! GDALRWFlag
+            integer(kind=c_int),VALUE :: ndsxoff
+            integer(kind=c_int),VALUE :: ndsyoff
+            integer(kind=c_int),VALUE :: ndsxsize
+            integer(kind=c_int),VALUE :: ndsysize
+            type(c_ptr),VALUE :: pbuffer ! void*
+            integer(kind=c_int),VALUE :: nbxsize
+            integer(kind=c_int),VALUE :: nbysize
+            integer(kind=c_int),VALUE :: ebdatatype ! GDALDataType
+            integer(kind=c_int),VALUE :: npixelspace
+            integer(kind=c_int),VALUE :: nlinespace
+            integer(kind=c_int) :: gdalrasterio ! CPLErr
+        end function gdalrasterio
+    end interface
 
     interface
         function GDALDatasetRasterIO(hds, erwflag, ndsxoff, ndsyoff, ndsxsize, ndsysize, pbuffer, nbxsize, nbysize, ebdatatype, &
@@ -203,83 +203,156 @@ module gdal_c_bind
         end function
     end interface
 
-    INTERFACE
-        FUNCTION GDALGetRasterDataType(hband) BIND(C,name='GDALGetRasterDataType')
+    interface
+        function GDALGetRasterDataType(hband) BIND(C,name='GDALGetRasterDataType')
             IMPORT
             !!DEC$ ATTRIBUTES STDCALL :: GDALGetRasterDataType
-            TYPE(gdalrasterbandh),VALUE :: hband
-            INTEGER(kind=c_int) :: gdalgetrasterdatatype ! GDALDataType
-        END FUNCTION GDALGetRasterDataType
-    END INTERFACE
+            type(gdalrasterbandh),VALUE :: hband
+            integer(kind=c_int) :: gdalgetrasterdatatype ! GDALDataType
+        end function GDALGetRasterDataType
+    end interface
 
-    INTERFACE
-        FUNCTION GDALGetRasterNoDataValue(hband, pbsuccess) BIND(C,name='GDALGetRasterNoDataValue')
+    interface
+        function GDALGetRasterNoDataValue(hband, pbsuccess) BIND(C,name='GDALGetRasterNoDataValue')
             import
             !!DEC$ ATTRIBUTES STDCALL :: GDALGetRasterNoDataValue
-            TYPE(gdalrasterbandh),VALUE :: hband
-            INTEGER(kind=c_int),INTENT(inout) :: pbsuccess
-            REAL(kind=c_double) :: GDALGetRasterNoDataValue
-        END FUNCTION GDALGetRasterNoDataValue
-    END INTERFACE
+            type(gdalrasterbandh),VALUE :: hband
+            integer(kind=c_int),INTENT(inout) :: pbsuccess
+            real(kind=c_double) :: GDALGetRasterNoDataValue
+        end function GDALGetRasterNoDataValue
+    end interface
 
-    INTERFACE
-        FUNCTION GDALSetRasterNoDataValue(hband, dfvalue) BIND(C,name='GDALSetRasterNoDataValue')
+    interface
+        function GDALSetRasterNoDataValue(hband, dfvalue) BIND(C,name='GDALSetRasterNoDataValue')
             import
             !!DEC$ ATTRIBUTES STDCALL :: GDALSetRasterNoDataValue
-            TYPE(gdalrasterbandh),VALUE :: hband
-            REAL(kind=c_double),VALUE :: dfvalue
-            INTEGER(kind=c_int) :: GDALSetRasterNoDataValue ! CPLErr
-        END FUNCTION GDALSetRasterNoDataValue
-    END INTERFACE
+            type(gdalrasterbandh),VALUE :: hband
+            real(kind=c_double),VALUE :: dfvalue
+            integer(kind=c_int) :: GDALSetRasterNoDataValue ! CPLErr
+        end function GDALSetRasterNoDataValue
+    end interface
+
 
     INTERFACE
-        FUNCTION gdalsetprojection(hds, pszprojection) BIND(C,name='GDALSetProjection')
+        FUNCTION GDALGetProjectionRef(hds) BIND(C,name='GDALGetProjectionRef')
+            IMPORT
+            !!DEC$ ATTRIBUTES STDCALL :: GDALGetProjectionRef
+            TYPE(gdaldataseth),VALUE :: hds
+            TYPE(c_ptr) :: GDALGetProjectionRef ! char*
+        END FUNCTION 
+    END INTERFACE
+
+    interface
+        function gdalsetprojection(hds, pszprojection) BIND(C,name='GDALSetProjection')
             import
             !!DEC$ ATTRIBUTES STDCALL :: GDALSetProjection
-            TYPE(gdaldataseth),VALUE :: hds
+            type(gdaldataseth),VALUE :: hds
             CHARACTER(kind=c_char),INTENT(in) :: pszprojection(*)
-            INTEGER(kind=c_int) :: gdalsetprojection ! CPLErr
-        END FUNCTION gdalsetprojection
-    END INTERFACE
+            integer(kind=c_int) :: gdalsetprojection ! CPLErr
+        end function 
+    end interface
 
-    INTERFACE
-        FUNCTION gdalgetgeotransform(hds, padftransform) BIND(C,name='GDALGetGeoTransform')
+    interface
+        function gdalgetgeotransform(hds, padftransform) BIND(C,name='GDALGetGeoTransform')
             import
             !!DEC$ ATTRIBUTES STDCALL :: GDALGetGeoTransform
-            TYPE(gdaldataseth),VALUE :: hds
-            REAL(kind=c_double) :: padftransform(*)
-            INTEGER(kind=c_int) :: gdalgetgeotransform ! CPLErr
-        END FUNCTION gdalgetgeotransform
-    END INTERFACE
+            type(gdaldataseth),VALUE :: hds
+            real(kind=c_double) :: padftransform(*)
+            integer(kind=c_int) :: gdalgetgeotransform ! CPLErr
+        end function gdalgetgeotransform
+    end interface
 
-    INTERFACE
-        FUNCTION gdalsetgeotransform(hds, padftransform) BIND(C,name='GDALSetGeoTransform')
+    interface
+        function gdalsetgeotransform(hds, padftransform) BIND(C,name='GDALSetGeoTransform')
             import
             !!DEC$ ATTRIBUTES STDCALL :: GDALSetGeoTransform
-            TYPE(gdaldataseth),VALUE :: hds
-            REAL(kind=c_double) :: padftransform(*)
-            INTEGER(kind=c_int) :: gdalsetgeotransform ! CPLErr
-        END FUNCTION gdalsetgeotransform
-    END INTERFACE
+            type(gdaldataseth),VALUE :: hds
+            real(kind=c_double) :: padftransform(*)
+            integer(kind=c_int) :: gdalsetgeotransform ! CPLErr
+        end function gdalsetgeotransform
+    end interface
 
-    INTERFACE
-        FUNCTION gdalgetrasterminimum(hband, pbsuccess) BIND(C,name='GDALGetRasterMinimum')
+    interface
+        function gdalgetrasterminimum(hband, pbsuccess) BIND(C,name='GDALGetRasterMinimum')
             IMPORT
             !!DEC$ ATTRIBUTES STDCALL :: GDALGetRasterMinimum
-            TYPE(gdalrasterbandh),VALUE :: hband
-            INTEGER(kind=c_int),INTENT(inout) :: pbsuccess
-            REAL(kind=c_double) :: gdalgetrasterminimum
-        END FUNCTION gdalgetrasterminimum
+            type(gdalrasterbandh),VALUE :: hband
+            integer(kind=c_int),INTENT(inout) :: pbsuccess
+            real(kind=c_double) :: gdalgetrasterminimum
+        end function gdalgetrasterminimum
+    end interface
+
+    interface
+        function gdalgetrastermaximum(hband, pbsuccess) BIND(C,name='GDALGetRasterMaximum')
+            IMPORT
+            !!DEC$ ATTRIBUTES STDCALL :: GDALGetRasterMaximum
+            type(gdalrasterbandh),VALUE :: hband
+            integer(kind=c_int),INTENT(inout) :: pbsuccess
+            real(kind=c_double) :: gdalgetrastermaximum
+        end function gdalgetrastermaximum
+    end interface
+
+
+    INTERFACE
+        FUNCTION GDALGetMetadata(hobject, pszdomain) BIND(C,name='GDALGetMetadata')
+            IMPORT
+            !!DEC$ ATTRIBUTES STDCALL :: GDALGetMetadata
+            TYPE(gdalmajorobjecth),VALUE :: hobject
+            CHARACTER(kind=c_char),INTENT(in) :: pszdomain(*)
+            TYPE(c_ptr) :: gdalgetmetadata ! TYPE(c_ptr_ptr)
+        END FUNCTION 
     END INTERFACE
 
     INTERFACE
-        FUNCTION gdalgetrastermaximum(hband, pbsuccess) BIND(C,name='GDALGetRasterMaximum')
+        FUNCTION GDALSetMetadata(hobject, papszmd, pszdomain) BIND(C,name='GDALSetMetadata')
             IMPORT
-            !!DEC$ ATTRIBUTES STDCALL :: GDALGetRasterMaximum
-            TYPE(gdalrasterbandh),VALUE :: hband
-            INTEGER(kind=c_int),INTENT(inout) :: pbsuccess
-            REAL(kind=c_double) :: gdalgetrastermaximum
-        END FUNCTION gdalgetrastermaximum
+            !!DEC$ ATTRIBUTES STDCALL :: GDALSetMetadata
+            TYPE(gdalmajorobjecth),VALUE :: hobject
+            TYPE(c_ptr),VALUE :: papszmd ! TYPE(c_ptr_ptr)
+            CHARACTER(kind=c_char),INTENT(in) :: pszdomain(*)
+            INTEGER(kind=c_int) :: GDALSetMetadata ! CPLErr
+        END FUNCTION 
+    END INTERFACE
+
+    INTERFACE
+        FUNCTION GDALGetMetadataItem(hobject, pszname, pszdomain) BIND(C,name='GDALGetMetadataItem')
+            IMPORT
+            !!DEC$ ATTRIBUTES STDCALL :: GDALGetMetadataItem
+            TYPE(gdalmajorobjecth),VALUE :: hobject
+            CHARACTER(kind=c_char),INTENT(in) :: pszname(*)
+            CHARACTER(kind=c_char),INTENT(in) :: pszdomain(*)
+            TYPE(c_ptr) :: GDALGetMetadataItem ! char*
+        END FUNCTION 
+    END INTERFACE
+
+    INTERFACE
+        FUNCTION GDALSetMetadataItem(hobject, pszname, pszvalue, pszdomain) BIND(C,name='GDALSetMetadataItem')
+            IMPORT
+            !!DEC$ ATTRIBUTES STDCALL :: GDALSetMetadataItem
+            TYPE(gdalmajorobjecth),VALUE :: hobject
+            CHARACTER(kind=c_char),INTENT(in) :: pszname(*)
+            CHARACTER(kind=c_char),INTENT(in) :: pszvalue(*)
+            CHARACTER(kind=c_char),INTENT(in) :: pszdomain(*)
+            INTEGER(kind=c_int) :: GDALSetMetadataItem ! CPLErr
+        END FUNCTION 
+    END INTERFACE
+
+    INTERFACE
+        FUNCTION GDALGetDescription(hobject) BIND(C,name='GDALGetDescription')
+            IMPORT
+            !!DEC$ ATTRIBUTES STDCALL :: GDALGetDescription
+            TYPE(gdalmajorobjecth),VALUE :: hobject
+            TYPE(c_ptr) :: GDALGetDescription ! char*
+        END FUNCTION 
+    END INTERFACE
+
+    INTERFACE
+        SUBROUTINE GDALSetDescription(hobject, psznewdesc) BIND(C,name='GDALSetDescription')
+            IMPORT
+            !!DEC$ ATTRIBUTES STDCALL :: GDALSetDescription
+            TYPE(gdalmajorobjecth),VALUE :: hobject
+            CHARACTER(kind=c_char),INTENT(in) :: psznewdesc(*)
+        END SUBROUTINE 
     END INTERFACE
 
 end module

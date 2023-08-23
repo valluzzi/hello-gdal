@@ -4,11 +4,6 @@ module gdal_utils
     use gdal_numpy
     implicit none
 
-    interface Numpy2GDAL
-        !module procedure Numpy2GDAL_int16
-        module procedure Numpy2GDAL_Float32
-    end interface
-
     contains
 
     !--------------------------------------------------------------
@@ -46,28 +41,6 @@ module gdal_utils
    
 
 
-    function Numpy2GDAL_Float32(data, gt, prj, filename, save_nodata_as, frmt) result(err)
-        implicit none
-        real(kind=c_float), dimension(:,:), intent(in) :: data
-        real(kind=c_float), dimension(6), intent(in) :: gt
-        character(*), intent(in) :: prj
-        character(*), intent(in) :: filename
-        real(kind=c_double), intent(in) :: save_nodata_as
-        character(*), intent(in) :: frmt
-
-        integer(kind=c_int) :: err ! CPLErr
-        type(gdaldataseth) :: ds
-        integer(kind=c_int) :: m, n
-        m = size(data,1)
-        n = size(data,2)
-
-        ds = Create(filename, n, m, 1, GDT_Float32)
-        err = SetGeoTransform(ds, gt)
-        err = SetProjection(ds, prj)
-        err = SetNodata(ds, save_nodata_as)
-        err = WriteArray(ds, data)
-        call Close(ds)
     
-    end function
 
 end module

@@ -3,34 +3,55 @@ module gdal
     use gdal_c_bind
     implicit none
 
-    type, abstract :: Raster
-        real(kind=c_double) :: gt(6)
-        character(:), allocatable :: proj
-    end type
+    real(kind=c_float), parameter::NaN = B'11111111111111111111111111111111'
 
-
-    type, extends(Raster) :: ByteRaster
-        integer(kind=1), dimension(:,:), allocatable :: data
-    end type
-
-    type, extends(Raster) :: Float32Raster
-        real(kind=c_float), dimension(:,:), allocatable :: data
-    end type
-
-    type, extends(Raster) :: Float64Raster
-        real(kind=c_double), dimension(:,:), allocatable :: data
-    end type
-
-
+    interface isNaN
+        module procedure isNaN_Byte, isNaN_Int32, isNaN_Float32, isNaN_Float64
+    end interface
+    
     interface SetGeoTransform
         module procedure SetGeoTransform_f64, SetGeoTransform_f32
     end interface
 
-    ! interface ReadArray
-    !     module procedure ReadArray_Float32
-    ! end interface
+    interface ReadArray
+         module procedure ReadArray_Byte,ReadArray_Int32,ReadArray_Float32,ReadArray_Float64
+    end interface
 
+    interface SetNodata
+        module procedure SetNodata_Float32, SetNodata_Float64
+    end interface
+    
     contains
+    
+    
+    function isNaN_Byte(x) result(res)
+        implicit none
+        integer(kind=1), intent(in) :: x
+        logical :: res
+        res = x == NaN
+    end function
+
+    function isNaN_Int32(x) result(res)
+        implicit none
+        integer(kind=c_int), intent(in) :: x
+        logical :: res
+        res = x == NaN
+    end function
+
+    function isNaN_Float32(x) result(res)
+        implicit none
+        real(kind=c_float), intent(in) :: x
+        logical :: res
+        res = x == NaN
+    end function
+
+    function isNaN_Float64(x) result(res)
+        implicit none
+        real(kind=c_double), intent(in) :: x
+        logical :: res
+        res = x == NaN
+    end function
+
 
     !--------------------------------------------------------------
     ! Subroutine: AllRegister
@@ -70,16 +91,12 @@ module gdal
         idx = index(filename,'.') +1
         ext = trim(filename(idx:))
         
-        if (ext.eq."tif") then
-            name = "GTiff"
-        else 
-            name = ext
-        end if
+        name = iif(ext.eq."tif","GTiff", ext) 
 
         GetDriverByExt = GDALGetDriverByName(name//char(0))
         deallocate(name)
         deallocate(ext)
-    end function GetDriverByExt
+    end function 
 
     !--------------------------------------------------------------
     ! Function:   Open
@@ -123,17 +140,8 @@ module gdal
         type(gdaldriverh) :: driver
         type(gdaldataseth) :: Create
 
-        if (.not.present(bandtype)) then
-            dtype = GDT_Float32
-        else 
-            dtype = bandtype
-        end if
-        
-        if (.not.present(nbands)) then
-            nb = 1
-        else
-            nb = nbands
-        end if
+        dtype = iif (.not.present(bandtype), GDT_Float32, bandtype)
+        nb = iif(.not.present(nbands), 1, nbands)
 
         if (.not.present(options)) then
             CO = (/'BIGTIFF=YES     ','TILED=YES       ', 'BLOCKXSIZE=256  ', 'BLOCKYSIZE=256  '/)
@@ -260,23 +268,18 @@ module gdal
     end function
 
     !--------------------------------------------------------------
-    ! Function:   GetProjection
-    ! Purpose:    Get the projection of a GDAL dataset
+    ! Function:   GetDataType
+    ! Purpose:    Get the data type of a GDAL dataset
     ! Inputs:     ds - GDAL dataset handle
-    ! Returns:    GetProjection - projection string
+    ! Returns:    GetDataType - data type
     !--------------------------------------------------------------
     function GetDataType(ds, band) result(dtype)
         implicit none
         type(gdaldataseth), intent(in) :: ds
         integer(kind=c_int), optional, intent(in) :: band
-        integer :: dtype
-        type(gdalrasterbandh) :: b
-        if (.not.present(band)) then
-            b = gdalgetrasterband(ds, 1)
-        else 
-            b = gdalgetrasterband(ds, band)
-        end if  
-        dtype = int(GDALGetRasterDataType(b))
+        integer :: dtype, b 
+        b = iif(.not.present(band), 1, band)
+        dtype = int(GDALGetRasterDataType(gdalgetrasterband(ds, b)))
     end function
 
     !--------------------------------------------------------------
@@ -344,7 +347,24 @@ module gdal
     !             nodata - nodata value
     ! Returns:    err - error code
     !--------------------------------------------------------------
-    function SetNodata(ds, nodata) result(err)
+    function SetNodata_Float32(ds, nodata) result(err)
+        implicit none
+        type(gdaldataseth), intent(in) :: ds
+        real(kind=c_float), intent(in) :: nodata
+        integer :: err ! CPLErr
+        type(gdalrasterbandh) :: band
+        band = gdalgetrasterband(ds, 1)
+        err = GDALSetRasterNoDataValue(band, real(nodata, kind=c_double))
+    end function
+
+    !--------------------------------------------------------------
+    ! Function:   SetNodata
+    ! Purpose:    Set the nodata value of a GDAL dataset
+    ! Inputs:     ds - GDAL dataset handle
+    !             nodata - nodata value
+    ! Returns:    err - error code
+    !--------------------------------------------------------------
+    function SetNodata_Float64(ds, nodata) result(err)
         implicit none
         type(gdaldataseth), intent(in) :: ds
         real(kind=c_double), intent(in) :: nodata
@@ -352,6 +372,20 @@ module gdal
         type(gdalrasterbandh) :: band
         band = gdalgetrasterband(ds, 1)
         err = GDALSetRasterNoDataValue(band, nodata)
+    end function
+
+    !--------------------------------------------------------------
+    ! Function:   GetGeoTransform
+    ! Purpose:    Get the geotransform of a GDAL dataset
+    ! Inputs:     ds - GDAL dataset handle
+    ! Returns:    gt - geotransform array
+    !--------------------------------------------------------------
+    function GetGeoTransform(ds) result(gt)
+        implicit none
+        type(gdaldataseth), intent(in) :: ds
+        real(kind=c_double), dimension(6) :: gt
+        integer(kind=c_int) :: err
+        err = GDALGetGeoTransform(ds, gt)
     end function
 
     !--------------------------------------------------------------
@@ -382,6 +416,21 @@ module gdal
     end function
 
     !--------------------------------------------------------------
+    ! Function:   GetProjection
+    ! Purpose:    Get the projection of a GDAL dataset
+    ! Inputs:     ds - GDAL dataset handle
+    ! Returns:    prj - projection string
+    !--------------------------------------------------------------
+    function GetProjection(ds) result(prj)
+        implicit none
+        type(gdaldataseth), intent(in) :: ds
+        character(:), allocatable :: prj
+        character(kind=c_char), dimension(:), allocatable:: c_prj
+        c_prj = GDALGetProjectionRef(ds)
+        prj = strtofchar(c_prj)
+    end function
+
+    !--------------------------------------------------------------
     ! Function:   SetProjection
     ! Purpose:    Set the projection of a GDAL dataset
     ! Inputs:     ds - GDAL dataset handle
@@ -397,70 +446,117 @@ module gdal
     end function
 
 
-   
+    !--------------------------------------------------------------
+    ! Function:   ReadArray_Byte
+    ! Purpose:    Read a 2D array of data values from a GDAL dataset
+    ! Inputs:     ds - GDAL dataset handle
+    !             band* - band number
+    !             n - number of columns
+    !             m - number of rows
+    ! Returns:    data - 2D array of data values
+    function ReadArray_Byte(band, data, n, m) result(err)
+        implicit none
+        type(gdalrasterbandh),value :: band
+        integer(kind=1),  allocatable:: data(:,:)
+        integer(kind=c_int), intent(in):: m, n
+        integer(kind=c_int) :: dtype = GDT_Byte
+        integer(kind=c_int) :: err ! CPLErr
+           
+        if (.not.allocated(data)) then
+            allocate(data(n,m))
+        end if
+        err = gdalrasterio( band , GF_Read, 0, 0, n, m, c_loc(data), n, m, dtype, 0, 0)            
+    end function
+
+
+    !--------------------------------------------------------------
+    ! Function:   ReadArray_Int32
+    ! Purpose:    Read a 2D array of data values from a GDAL dataset
+    ! Inputs:     ds - GDAL dataset handle
+    !             band* - band number
+    !             n - number of columns
+    !             m - number of rows
+    ! Returns:    data - 2D array of data values
+    function ReadArray_Int32(band, data, n, m) result(err)
+        implicit none
+        type(gdalrasterbandh),value :: band
+        integer(kind=c_int),  allocatable:: data(:,:)
+        integer(kind=c_int), intent(in):: m, n
+        integer(kind=c_int) :: dtype
+        integer(kind=c_int) :: err ! CPLErr
+
+        dtype = GDT_Int32        
+        !m = GetRasterYSize(ds)
+        !n = GetRasterXSize(ds)
+            
+        if (.not.allocated(data)) then
+            allocate(data(n,m))
+        end if
+        err = gdalrasterio( band , GF_Read, 0, 0, n, m, c_loc(data), n, m, dtype, 0,0)            
+    end function
 
     !--------------------------------------------------------------
     ! Function:   ReadArray_Float32
     ! Purpose:    Read a 2D array of data values from a GDAL dataset
     ! Inputs:     ds - GDAL dataset handle
-    !             band - band number
+    !             band* - band number
+    !             n - number of columns
+    !             m - number of rows
     ! Returns:    data - 2D array of data values
-    !--------------------------------------------------------------
-    function ReadArray_Float32(ds, band) result(data)
+    function ReadArray_Float32(band, data, n, m) result(err)
         implicit none
-        type(gdaldataseth),value :: ds  
-        integer(kind=c_int), optional, intent(in) :: band
+        type(gdalrasterbandh),value :: band
         real(kind=c_float),  allocatable:: data(:,:)
-        integer(kind=c_int) :: m, n, b, dtype
+        integer(kind=c_int), intent(in):: m, n
+        integer(kind=c_int) :: dtype
         integer(kind=c_int) :: err ! CPLErr
 
-        if (.not.present(band)) then
-            b = 1
-        else 
-            b = band
-        end if
-
-        m = GDALGetRasterYSize(ds)
-        n = GDALGetRasterXSize(ds)
-        
-        dtype = GetDataType(ds, b)
-        
+        dtype = GDT_Float32        
+        !m = GetRasterYSize(ds)
+        !n = GetRasterXSize(ds)
+            
         if (.not.allocated(data)) then
             allocate(data(n,m))
         end if
-        err = gdalrasterio( gdalgetrasterband(ds, b) , GF_Read, 0, 0, n, m, c_loc(data), n, m, dtype, 0,0)           
-        
+        err = gdalrasterio( band , GF_Read, 0, 0, n, m, c_loc(data), n, m, dtype, 0,0)            
     end function
 
-    function ReadArray(ds, band) result(res)
+    !--------------------------------------------------------------
+    ! Function:   ReadArray_Float64
+    ! Purpose:    Read a 2D array of data values from a GDAL dataset
+    ! Inputs:     ds - GDAL dataset handle
+    !             band* - band number
+    !             n - number of columns
+    !             m - number of rows
+    ! Returns:    data - 2D array of data values
+    function ReadArray_Float64(band, data, n, m) result(err)
         implicit none
-        type(gdaldataseth),value :: ds
-        integer(kind=c_int), optional,intent(in) :: band
-        class(Raster), allocatable :: res
-        type(Float32Raster) :: res_f32
-        type(Float64Raster) :: res_f64
-        integer(kind=c_int) :: m, n, b, dtype, err
+        type(gdalrasterbandh),value :: band
+        real(kind=c_double),  allocatable:: data(:,:)
+        integer(kind=c_int), intent(in):: m, n
+        integer(kind=c_int) :: dtype
+        integer(kind=c_int) :: err ! CPLErr
 
-        m = GDALGetRasterYSize(ds)
-        n = GDALGetRasterXSize(ds)
-        
-        b = 1
-        dtype = GetDataType(ds, b)
-
-
-        select case (dtype)
-            case (GDT_Float32)
-                allocate(res_f32%data(n,m))
-                err = gdalrasterio( gdalgetrasterband(ds, b) , GF_Read, 0, 0, n, m, c_loc(res_f32%data), n, m, dtype, 0,0)           
-                res = res_f32
-            case (GDT_Float64)
-                allocate(res_f64%data(n,m))
-                err = gdalrasterio( gdalgetrasterband(ds, b) , GF_Read, 0, 0, n, m, c_loc(res_f64%data), n, m, dtype, 0,0)           
-                res = res_f64
-        end select            
-        
-
+        dtype = GDT_Float64        
+        !m = GetRasterYSize(ds)
+        !n = GetRasterXSize(ds)
+            
+        if (.not.allocated(data)) then
+            allocate(data(n,m))
+        end if
+        err = gdalrasterio( band , GF_Read, 0, 0, n, m, c_loc(data), n, m, dtype, 0,0)            
     end function
+
+
+    ! function GetMetadata(ds) result(meta)
+    !     implicit none
+    !     type(gdaldataseth), intent(in) :: ds
+    !     type(gdalmetadatah) :: meta
+    !     meta = GDALGetMetadata(ds, C_NULL_PTR)
+    ! end function
+
+
+
   
     
 
