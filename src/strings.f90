@@ -128,6 +128,7 @@ module strings
         end do
         res = text(1:e)
     end function
+
     !!
     !! strip 
     !!
@@ -172,9 +173,15 @@ module strings
         res = (/ccount, wmax/)
     end function
 
-    !!
-    !!  split
-    !!
+    !---------------------------------------------------------------------------
+    !  split
+    !   split a string into an array of strings
+    !   text - string to split
+    !   sep - separator
+    !   trim - trim each item
+    !   remove_empty - remove empty items
+    !   returns - array of strings
+    !---------------------------------------------------------------------------
     function split(text, sep, trim, remove_empty) result(res)
         character(*),intent(in) :: text
         character(*),intent(in) :: sep
